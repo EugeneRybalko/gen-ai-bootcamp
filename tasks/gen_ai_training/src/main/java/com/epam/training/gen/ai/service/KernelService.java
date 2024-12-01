@@ -1,13 +1,17 @@
 package com.epam.training.gen.ai.service;
 
-import com.microsoft.semantickernel.Kernel;
+import com.epam.training.gen.ai.model.Prompt;
+import com.epam.training.gen.ai.util.KernelBuilder;
 import com.microsoft.semantickernel.orchestration.InvocationContext;
+import com.microsoft.semantickernel.orchestration.InvocationReturnMode;
 import com.microsoft.semantickernel.orchestration.PromptExecutionSettings;
+import com.microsoft.semantickernel.orchestration.ToolCallBehavior;
 import com.microsoft.semantickernel.semanticfunctions.KernelFunction;
 import com.microsoft.semantickernel.semanticfunctions.KernelFunctionArguments;
 import com.microsoft.semantickernel.services.chatcompletion.ChatHistory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,19 +19,22 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class KernelService {
 
-    private final Kernel kernel;
+    private final KernelBuilder kernelBuilder;
     private final ChatHistory chatHistory;
-    private final InvocationContext invocationContext;
-    private final PromptExecutionSettings promptExecutionSettings;
 
-    public String processWithHistory(String prompt) {
-        var response = kernel.invokeAsync(getChat())
-                .withArguments(getKernelFunctionArguments(prompt, chatHistory))
-                .withPromptExecutionSettings(promptExecutionSettings)
-                .withInvocationContext(invocationContext)
+    @Value("${default-temperature}")
+    private Double defaultTemperature;
+
+    public String processWithHistory(Prompt prompt) {
+        var response = kernelBuilder.withModel(prompt.getModelName())
+                .build()
+                .invokeAsync(getChat())
+                .withArguments(getKernelFunctionArguments(prompt.getInput(), chatHistory))
+                .withPromptExecutionSettings(getPromptExecutionSettings(prompt.getTemperature()))
+                .withInvocationContext(getInvocationContext(prompt.isFunctionsEnabled()))
                 .block();
 
-        chatHistory.addUserMessage(prompt);
+        chatHistory.addUserMessage(prompt.getInput());
         chatHistory.addAssistantMessage(response.getResult());
         log.info("AI answer:" + response.getResult());
         return response.getResult();
@@ -61,4 +68,38 @@ public class KernelService {
                 .build();
     }
 
+    /**
+     * Configures and provides a {@link PromptExecutionSettings} bean.
+     *
+     * <p>This method creates an instance of {@link PromptExecutionSettings} using a builder pattern.
+     * The resulting {@link PromptExecutionSettings} instance is then
+     * exposed as a Spring Bean, allowing it to be autowired into other components within the Spring
+     * application context.</p>
+     *
+     * @return a configured {@link PromptExecutionSettings} instance
+     */
+    private PromptExecutionSettings getPromptExecutionSettings(Double temperature) {
+        log.info("Temperature: {}", temperature);
+        return PromptExecutionSettings.builder()
+                .withTemperature(temperature == null ? defaultTemperature : temperature)
+                .build();
+    }
+
+    /**
+     * Creates and configures an {@link InvocationContext} bean.
+     *
+     * <p>The {@code InvocationContext} is set up with the following configurations:</p>
+     * <ul>
+     *   <li>Invocation return mode is set to {@link InvocationReturnMode#LAST_MESSAGE_ONLY LAST_MESSAGE_ONLY}</li>
+     *   <li>Tool call behavior is set to allow all kernel functions, as defined by {@link ToolCallBehavior#allowAllKernelFunctions(boolean) allowAllKernelFunctions(true)}</li>
+     * </ul>
+     *
+     * @return an instance of {@link InvocationContext} with the specified configurations
+     */
+    private InvocationContext getInvocationContext(boolean functionsEnabled) {
+        return InvocationContext.builder()
+                .withReturnMode(InvocationReturnMode.LAST_MESSAGE_ONLY)
+                .withToolCallBehavior(functionsEnabled ? ToolCallBehavior.allowAllKernelFunctions(true) : null)
+                .build();
+    }
 }
