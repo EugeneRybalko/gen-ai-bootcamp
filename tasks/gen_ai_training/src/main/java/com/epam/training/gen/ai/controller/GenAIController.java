@@ -20,7 +20,7 @@ public class GenAIController {
 
     @PostMapping("/ai/semantic")
     public PromptResponse callSemanticKernel(@RequestBody Prompt request) {
-        var messages = kernelService.processWithHistory(request.getInput());
+        var messages = kernelService.processWithHistory(request);
         return new PromptResponse(List.of(messages));
     }
 
