@@ -1,3 +1,79 @@
+### Module 4 Results
+
+#### 1. Experiment with new currency exchange plugin
+Getting currency exchange from USD to UAH
+
+Request POST http://localhost:8080/ai/semantic
+```json
+{
+    "input": "What is the currency exchange rate for USD to UAH ?",
+    "temperature": 0.7,
+    "modelName": "gpt-4o",
+    "functionsEnabled": true
+}
+```
+Response:
+```json
+{
+    "messages": [
+        "The exchange rate from USD to UAH is 41.45."
+    ]
+}
+```
+#### 2. Convert 100 USD to UAH
+Request POST http://localhost:8080/ai/semantic
+```json
+{
+  "input": "Convert 100 USD to UAH",
+  "temperature": 0.7,
+  "modelName": "gpt-4o",
+  "functionsEnabled": true
+}
+```
+Response:
+```json
+{
+  "messages": [
+    "At the exchange rate of 41.45 UAH per 1 USD, 100 USD would be equivalent to 4,145 UAH."
+  ]
+}
+```
+#### 3. Renting a car using car renting plugin
+Request POST http://localhost:8080/ai/semantic
+```json
+{
+  "input": "I want to rent any car without broken window",
+  "temperature": 0.7,
+  "modelName": "gpt-4o",
+  "functionsEnabled": true
+}
+```
+Response:
+```json
+{
+  "messages": [
+    "It seems there are only three cars available, and here are the details:\n\n1. **BMW**\n   - **Description:** Black color\n   - **Condition:** Broken door\n   - **Rented:** No\n\n2. **Mazda**\n   - **Description:** Black color\n   - **Condition:** Broken window\n   - **Rented:** Yes\n\n3. **Mercedes**\n   - **Description:** Red color\n   - **Condition:** Broken door\n   - **Rented:** No\n\nUnfortunately, there aren't any available cars with all windows intact, as the Mazda (which does have a broken window) is the only rented vehicle. The BMW and Mercedes, which are available for rent, have broken doors instead of windows. Would you like to rent any of these cars with broken doors?"
+  ]
+}
+```
+Request:
+```json
+{
+  "input": "Yes I would like to rent any car with broken door",
+  "temperature": 0.7,
+  "modelName": "gpt-4o",
+  "functionsEnabled": true
+}
+```
+Response:
+```json
+{
+  "messages": [
+    "You've successfully rented the **BMW** with a broken door. Enjoy your ride! If you need any more assistance, feel free to ask."
+  ]
+}
+```
+
 ### Module 3 Results
 
 #### 1. Retrieved list of available models
