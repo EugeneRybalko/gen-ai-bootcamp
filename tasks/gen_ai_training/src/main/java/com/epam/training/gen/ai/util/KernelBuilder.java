@@ -1,7 +1,8 @@
 package com.epam.training.gen.ai.util;
 
 import com.azure.ai.openai.OpenAIAsyncClient;
-import com.epam.training.gen.ai.plugin.SimplePlugin;
+import com.epam.training.gen.ai.plugin.CarRentalPlugin;
+import com.epam.training.gen.ai.plugin.CurrencyConversionPlugin;
 import com.microsoft.semantickernel.Kernel;
 import com.microsoft.semantickernel.aiservices.openai.chatcompletion.OpenAIChatCompletion;
 import com.microsoft.semantickernel.plugin.KernelPlugin;
@@ -18,7 +19,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class KernelBuilder {
 
-    public static final String PLUGIN_NAME = "SimplePlugin";
+    public static final String CURRENCY_EXCHANGE_PLUGIN_NAME = "CurrencyConversionPlugin";
+    public static final String CAR_RENTAL_PLUGIN_NAME = "CarRentalPlugin";
 
     private final OpenAIAsyncClient openAIAsyncClient;
 
@@ -49,13 +51,23 @@ public class KernelBuilder {
     }
 
     /**
-     * Creates a {@link KernelPlugin} bean using a simple plugin.
+     * Creates a {@link KernelPlugin} bean using a currency exchange plugin.
      *
      * @return an instance of {@link KernelPlugin}
      */
-    private KernelPlugin createKernelPlugin() {
+    private KernelPlugin createCurrencyExchangePlugin() {
         return KernelPluginFactory.createFromObject(
-                new SimplePlugin(), PLUGIN_NAME);
+                new CurrencyConversionPlugin(), CURRENCY_EXCHANGE_PLUGIN_NAME);
+    }
+
+    /**
+     * Creates a {@link KernelPlugin} bean using a car rental plugin.
+     *
+     * @return an instance of {@link KernelPlugin}
+     */
+    private KernelPlugin createCarRentalPlugin() {
+        return KernelPluginFactory.createFromObject(
+                new CarRentalPlugin(), CAR_RENTAL_PLUGIN_NAME);
     }
 
     /**
@@ -67,7 +79,8 @@ public class KernelBuilder {
     private Kernel createKernel(ChatCompletionService chatCompletionService) {
         return Kernel.builder()
                 .withAIService(ChatCompletionService.class, chatCompletionService)
-                .withPlugin(createKernelPlugin())
+                .withPlugin(createCurrencyExchangePlugin())
+                .withPlugin(createCarRentalPlugin())
                 .build();
     }
 
